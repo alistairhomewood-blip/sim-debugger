@@ -1,0 +1,134 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sim-debugger"
+version = "0.2.0"
+description = "Instrument numerical simulations, monitor physical invariants in real time, explain failures in physics language."
+readme = {text = "Monitor physical invariants in numerical simulations. Detect conservation law violations, localise them in time/space/code, and explain failures in physics language -- not stack traces.", content-type = "text/plain"}
+requires-python = ">=3.11"
+license = "MIT"
+authors = [
+    { name = "Alistair", email = "alistair@example.com" },
+]
+keywords = [
+    "simulation", "physics", "debugging", "conservation-laws",
+    "invariants", "particle-in-cell", "boris-pusher", "PIC",
+    "numerical-methods", "monitoring",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Topic :: Software Development :: Debuggers",
+    "Topic :: Software Development :: Testing",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Typing :: Typed",
+]
+dependencies = [
+    "numpy>=1.24",
+    "typer>=0.12",
+    "rich>=13.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/alistair/sim-debugger"
+Documentation = "https://sim-debugger.readthedocs.io"
+Repository = "https://github.com/alistair/sim-debugger"
+Issues = "https://github.com/alistair/sim-debugger/issues"
+Changelog = "https://github.com/alistair/sim-debugger/blob/main/CHANGELOG.md"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "hypothesis>=6.0",
+    "ruff",
+    "mypy",
+    "pre-commit",
+]
+dashboard = [
+    "textual>=0.80",
+]
+scipy = [
+    "scipy>=1.11",
+]
+jax = [
+    "jax>=0.4",
+]
+hdf5 = [
+    "h5py>=3.0",
+]
+docs = [
+    "mkdocs>=1.5",
+    "mkdocstrings[python]>=0.24",
+    "mkdocs-material>=9.0",
+]
+all = [
+    "textual>=0.80",
+    "scipy>=1.11",
+    "jax>=0.4",
+    "h5py>=3.0",
+]
+
+[project.scripts]
+sim-debugger = "sim_debugger.cli.main:app"
+
+[project.entry-points."sim_debugger.invariants"]
+# Entry point for plugin invariants discovered via setuptools
+# Usage: third-party packages can register invariants like:
+#   [project.entry-points."sim_debugger.invariants"]
+#   my_invariant = "my_package.invariants:MyInvariant"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sim_debugger"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/sim_debugger/**/*.py",
+    "tests/**/*.py",
+    "pyproject.toml",
+    "CLAUDE.md",
+    "PLANNING.md",
+    "AUDIT_PLAN.md",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-v --tb=short"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "jax: marks tests requiring JAX (deselect with '-m \"not jax\"')",
+    "hdf5: marks tests requiring h5py (deselect with '-m \"not hdf5\"')",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B904"]
+
+[tool.ruff.lint.per-file-ignores]
+# Physics variable names (E, B, q, F, L, etc.) are standard notation
+# in computational physics and should not trigger N806/N803.
+"src/sim_debugger/parsec/*" = ["N806", "N803"]
+"src/sim_debugger/core/invariants.py" = ["N806", "N803"]
+"src/sim_debugger/core/auto_detect.py" = ["N806", "N803"]
+"src/sim_debugger/localise/*" = ["N806"]
+"src/sim_debugger/backends/*" = ["N806"]
+"tests/*" = ["N806", "N802", "N803"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+mypy_path = "src"
